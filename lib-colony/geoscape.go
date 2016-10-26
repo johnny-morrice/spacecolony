@@ -29,25 +29,25 @@ type GeoTile struct {
         ecs.BasicEntity
         common.RenderComponent
         common.SpaceComponent
+
+	Bounds Bounds
+
+        Planet *PlanetMap
 }
 
-type Planet struct {
+type ArielView struct {
         Tiles []*GeoTile
         Width int
         Height int
 }
 
-func (planet *Planet) FillRandom() {
+func (av *ArielView) Populate(landscape *PlanetMap) {
 }
 
-func (planet *Planet) TileAt(x, y int) *GeoTile {
-        return planet.Tiles[planet.pos(x, y)]
+func (av *ArielView) TileAt(x, y int) *GeoTile {
+        return av.Tiles[strideindex(x, y, av.Width)]
 }
 
-func (planet *Planet) SetTile(x, y int, tile *GeoTile) {
-        planet.Tiles[planet.pos(x, y)] = tile
-}
-
-func (planet *Planet) pos(x, y int) int {
-        return (y * planet.Width) + x
+func (av *ArielView) SetTile(x, y int, tile *GeoTile) {
+        av.Tiles[strideindex(x, y, av.Width)] = tile
 }
