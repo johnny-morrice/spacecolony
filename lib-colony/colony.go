@@ -1,0 +1,4 @@
+package colony
+
+func Play() {
+}
