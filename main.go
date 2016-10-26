@@ -20,7 +20,7 @@
 
 package main
 
-import "teoma.io/spacecolony/cmd"
+import "github.com/johnny-morrice/spacecolony/cmd"
 
 func main() {
 	cmd.Execute()

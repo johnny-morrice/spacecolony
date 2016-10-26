@@ -21,21 +21,88 @@
 package cmd
 
 import (
+        "fmt"
+        "os"
+        
 	"github.com/spf13/cobra"
 
-        "teoma.io/spacecolony/lib-colony"
+        "github.com/johnny-morrice/spacecolony/lib-colony"
 )
 
 // playCmd represents the play command
 var playCmd = &cobra.Command{
 	Use:   "play",
-	Short: "Play Space Colony.",
-	Long: `Space Colony is a gentle game where you work to settle another planet.`,
+	Short: "Play Space Colony",
+	Long: `Space Colony is a gentle roguelike about settling on a distant planet.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		colony.Play()
+                opts, err := getgameoptions(cmd)
+
+                if err != nil {
+                        fmt.Fprintf(os.Stderr, "Error in command line: %v", err)
+
+                        os.Exit(1)
+                }
+
+		colony.Play(*opts)
 	},
+}
+
+func getgameoptions(cmd *cobra.Command) (*colony.GameOptions, error) {
+        persistent := cmd.PersistentFlags()
+
+        height, err := persistent.GetUint("height")
+
+        if err != nil {
+                return nil, err
+        }
+
+        width, err := persistent.GetUint("width")
+
+        if err != nil {
+                return nil, err
+        }
+
+        samples, err := persistent.GetUint("samples")
+
+        if err != nil {
+                return nil, err
+        }
+
+        fps, err := persistent.GetUint("fps")
+
+        fullscreen, err := persistent.GetBool("fullscreen")
+
+        if err != nil {
+                return nil, err
+        }
+
+        vsync, err := persistent.GetBool("vsync")
+
+        if err != nil {
+                return nil, err
+        }
+
+        opts := &colony.GameOptions{
+                Width: width,
+                Height: height,
+                Samples: samples,
+                FPS: fps,
+                Fullscreen: fullscreen,
+                Vsync: vsync,
+        }
+
+        return opts, nil
 }
 
 func init() {
 	RootCmd.AddCommand(playCmd)
+
+        persistent := playCmd.PersistentFlags()
+
+        persistent.Uint("width", 1000, "Window width")
+        persistent.Uint("height", 800, "Window height")
+        persistent.Uint("samples", 1, "Multisample count")
+        persistent.Uint("fps", 60, "Maximum frames-per-second")
+        persistent.Bool("fullscreen", false, "Full screen on desktop machines")
+        persistent.Bool("vsync", true, "Enable vertical sync")
 }
