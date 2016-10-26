@@ -20,13 +20,17 @@ func (*colonyScene) Preload() {}
 // Setup is called before the main loop starts. It allows you
 // to add entities and systems to your Scene.
 func (*colonyScene) Setup(world *ecs.World) {
-        common.SetBackground(color.Black)
+        _RenderSystem = &common.RenderSystem{}
 
-        world.AddSystem(&common.RenderSystem{})
+        common.SetBackground(color.Black)
+        
+        world.AddSystem(_RenderSystem)
         world.AddSystem(&common.MouseSystem{})
 
         world.AddSystem(&GeoscapeSystem{})
 }
+
+var _RenderSystem *common.RenderSystem
 
 type GameOptions struct {
         EngineOptions
