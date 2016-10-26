@@ -23,7 +23,7 @@ package cmd
 import (
         "fmt"
         "os"
-        
+
 	"github.com/spf13/cobra"
 
         "github.com/johnny-morrice/spacecolony/lib-colony"
@@ -82,14 +82,13 @@ func getgameoptions(cmd *cobra.Command) (*colony.GameOptions, error) {
                 return nil, err
         }
 
-        opts := &colony.GameOptions{
-                Width: width,
-                Height: height,
-                Samples: samples,
-                FPS: fps,
-                Fullscreen: fullscreen,
-                Vsync: vsync,
-        }
+        opts := &colony.GameOptions{}
+        opts.Width = width
+        opts.Height = height
+        opts.Samples = samples
+        opts.FPS = fps
+        opts.Fullscreen = fullscreen
+        opts.Vsync = vsync
 
         return opts, nil
 }

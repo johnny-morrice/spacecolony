@@ -19,6 +19,10 @@ func (*colonyScene) Preload() {}
 func (*colonyScene) Setup(*ecs.World) {}
 
 type GameOptions struct {
+        GraphicsOptions
+}
+
+type GraphicsOptions struct {
         Width uint
         Height uint
         FPS uint
