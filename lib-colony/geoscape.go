@@ -49,5 +49,5 @@ func (planet *Planet) SetTile(x, y int, tile *GeoTile) {
 }
 
 func (planet *Planet) pos(x, y int) int {
-        return (y * planet.Height) + x
+        return (y * planet.Width) + x
 }

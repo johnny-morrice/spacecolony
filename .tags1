@@ -4,6 +4,24 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-main	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/colony.go	/^package main$/;"	package	line:1
-main	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/colony.go	/^func main() {$/;"	func	line:3
-main	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/colony.go	/^func main() {$/;"	func	line:3
+colony	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^package colony$/;"	package	line:1
+GeoscapeSystem	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type GeoscapeSystem struct {$/;"	type	line:9
+GeoscapeSystem	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type GeoscapeSystem struct {$/;"	type	line:9
+Update	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) Update(dt float32) {$/;"	func	line:14
+Update	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) Update(dt float32) {$/;"	func	line:14
+Remove	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {$/;"	func	line:22
+Remove	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {$/;"	func	line:22
+regen	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) regen() {$/;"	func	line:25
+regen	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (geosys *GeoscapeSystem) regen() {$/;"	func	line:25
+GeoTile	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type GeoTile struct {$/;"	type	line:28
+GeoTile	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type GeoTile struct {$/;"	type	line:28
+Planet	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type Planet struct {$/;"	type	line:34
+Planet	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^type Planet struct {$/;"	type	line:34
+FillRandom	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) FillRandom() {$/;"	func	line:40
+FillRandom	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) FillRandom() {$/;"	func	line:40
+TileAt	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) TileAt(x, y int) *GeoTile {$/;"	func	line:43
+TileAt	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) TileAt(x, y int) *GeoTile {$/;"	func	line:43
+SetTile	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) SetTile(x, y int, tile *GeoTile) {$/;"	func	line:47
+SetTile	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) SetTile(x, y int, tile *GeoTile) {$/;"	func	line:47
+pos	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) pos(x, y int) int {$/;"	func	line:51
+pos	/home/jmorrice/gospace/src/github.com/johnny-morrice/spacecolony/lib-colony/geoscape.go	/^func (planet *Planet) pos(x, y int) int {$/;"	func	line:51
