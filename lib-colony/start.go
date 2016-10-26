@@ -1,7 +1,10 @@
 package colony
 
 import (
+        "image/color"
+
 	"engo.io/engo"
+        "engo.io/engo/common"
 	"engo.io/ecs"
 )
 
@@ -16,13 +19,25 @@ func (*colonyScene) Preload() {}
 
 // Setup is called before the main loop starts. It allows you
 // to add entities and systems to your Scene.
-func (*colonyScene) Setup(*ecs.World) {}
+func (*colonyScene) Setup(world *ecs.World) {
+        common.SetBackground(color.Black)
 
-type GameOptions struct {
-        GraphicsOptions
+        world.AddSystem(&common.RenderSystem{})
+        world.AddSystem(&common.MouseSystem{})
+
+        world.AddSystem(&GeoscapeSystem{})
 }
 
-type GraphicsOptions struct {
+type GameOptions struct {
+        EngineOptions
+	DisplayOptions
+}
+
+type DisplayOptions struct {
+	Tilesize uint
+}
+
+type EngineOptions struct {
         Width uint
         Height uint
         FPS uint

@@ -70,6 +70,16 @@ func getgameoptions(cmd *cobra.Command) (*colony.GameOptions, error) {
 
         fps, err := persistent.GetUint("fps")
 
+        if err != nil {
+                return nil, err
+        }
+
+        tilesize, err := persistent.GetUint("tilesize")
+
+        if err != nil {
+                return nil, err
+        }
+
         fullscreen, err := persistent.GetBool("fullscreen")
 
         if err != nil {
@@ -89,6 +99,7 @@ func getgameoptions(cmd *cobra.Command) (*colony.GameOptions, error) {
         opts.FPS = fps
         opts.Fullscreen = fullscreen
         opts.Vsync = vsync
+        opts.Tilesize = tilesize
 
         return opts, nil
 }
@@ -102,6 +113,8 @@ func init() {
         persistent.Uint("height", 800, "Window height")
         persistent.Uint("samples", 1, "Multisample count")
         persistent.Uint("fps", 60, "Maximum frames-per-second")
+        persistent.Uint("tilesize", 20, "Size of tile")
+
         persistent.Bool("fullscreen", false, "Full screen on desktop machines")
         persistent.Bool("vsync", true, "Enable vertical sync")
 }
