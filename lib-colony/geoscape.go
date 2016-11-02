@@ -29,10 +29,11 @@ type GeoTile struct {
         ecs.BasicEntity
         common.RenderComponent
         common.SpaceComponent
+	RegionComponent
+}
 
-	Bounds Bounds
-
-        Planet *PlanetMap
+type RegionComponent struct {
+	Region *Region
 }
 
 type ArielView struct {

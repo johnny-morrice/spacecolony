@@ -1,7 +1,11 @@
 package colony
 
+import (
+	"fmt"
+)
+
 type PlanetMap struct {
-        Tiles []Region
+        Tiles []*Region
 
         Width uint
         Height uint
@@ -9,17 +13,23 @@ type PlanetMap struct {
         Config PlanetConfig
 }
 
-func (pm *PlanetMap) Generate(rand Random, config PlanetConfig) {
+func (pm *PlanetMap) Init(rand Random) {
 }
 
 type PlanetConfig struct {
         // E.g. GravityStrength int
 }
 
-type Region struct {
-        Bio Biome
+type RegionClass interface {
+	GenerateTiles(rand *Random)
+}
 
-        Tiles []UnitTile
+type Region struct {
+        Biome *Biome
+
+	Class RegionClass
+
+        Tiles []*Tile
 
         Width uint
         Height uint
@@ -27,25 +37,39 @@ type Region struct {
         Neighbours []*Region
 }
 
-func (pm *Region) TransformTiles(rand Random) {
+func (r *Region) Init(rand *Random) {
+	r.Tiles = make([]*Tile, r.Width * r.Height)
+
+	switch r.Biome.Type {
+	case BiomeDust:
+		r.Class = &DustRegion{Region: r}
+	default:
+		panic(fmt.Sprintf("Unknown BiomeType: %v", r.Biome.Type))
+	}
+
+	r.Class.GenerateTiles(rand)
 }
 
 type Biome struct {
         Type BiomeType
-        Shape RegionShapeType
+        Shape BiomeShapeType
 }
 
-func RandomBiome(rand Random) *Biome {
-        return nil
+func RandomBiome(rand *Random) *Biome {
+        flatDust := &Biome{}
+	flatDust.Type = BiomeDust
+	flatDust.Shape = BiomeShapeFlat
+
+	return flatDust
 }
 
-type RegionShapeType uint8
+type BiomeShapeType uint8
 
 const (
-        RegionShapeFlat = RegionShapeType(iota)
-        RegionShapeCrater
-        RegionShapeHill
-        RegionShapeMountain
+        BiomeShapeFlat = BiomeShapeType(iota)
+        BiomeShapeCrater
+        BiomeShapeHill
+        BiomeShapeMountain
 )
 
 type BiomeType uint16
