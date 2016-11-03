@@ -4,20 +4,14 @@ import (
 	"fmt"
 )
 
-type PlanetMap struct {
+type Planet struct {
         Tiles []*Region
 
         Width uint
         Height uint
-
-        Config PlanetConfig
 }
 
-func (pm *PlanetMap) Init(rand Random) {
-}
-
-type PlanetConfig struct {
-        // E.g. GravityStrength int
+func (p *Planet) Init(rand Random) {
 }
 
 type RegionClass interface {

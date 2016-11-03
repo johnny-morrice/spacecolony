@@ -42,7 +42,7 @@ type ArielView struct {
         Height int
 }
 
-func (av *ArielView) Populate(landscape *PlanetMap) {
+func (av *ArielView) Populate(landscape *Planet) {
 }
 
 func (av *ArielView) TileAt(x, y int) *GeoTile {
