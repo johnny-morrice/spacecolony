@@ -2,36 +2,61 @@ package colony
 
 import (
         "image/color"
+	"path/filepath"
+	"os"
 
 	"engo.io/engo"
         "engo.io/engo/common"
 	"engo.io/ecs"
 )
 
-type colonyScene struct {}
-
-// Type uniquely defines your game type
-func (*colonyScene) Type() string { return "colony" }
-
-// Preload is called before loading any assets from the disk,
-// to allow you to register / queue them
-func (*colonyScene) Preload() {}
-
-// Setup is called before the main loop starts. It allows you
-// to add entities and systems to your Scene.
-func (*colonyScene) Setup(world *ecs.World) {
-        _RenderSystem = &common.RenderSystem{}
-
-        common.SetBackground(color.Black)
-        
-        world.AddSystem(_RenderSystem)
-        world.AddSystem(&common.MouseSystem{})
-
-        world.AddSystem(&GeoscapeSystem{})
+type colonyScene struct {
+	DisplayOptions
 }
 
-var _RenderSystem *common.RenderSystem
+func (cs *colonyScene) Type() string { return "colony" }
 
+func (cs *colonyScene) Preload() {
+	var matches []string
+
+	err := filepath.Walk("assets/png", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		_, file := filepath.Split(path)
+
+		matches = append(matches, filepath.Join("png", file))
+
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = engo.Files.Load(matches...)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (cs *colonyScene) Setup(world *ecs.World) {
+        common.SetBackground(color.Black)
+
+        world.AddSystem(&common.RenderSystem{})
+        world.AddSystem(&common.MouseSystem{})
+
+	geoscape := &GeoscapeSystem{}
+	geoscape.Tilesize = float32(cs.DisplayOptions.Tilesize)
+
+        world.AddSystem(geoscape)
+}
 type GameOptions struct {
         EngineOptions
 	DisplayOptions
@@ -61,5 +86,8 @@ func Play(gopts GameOptions) {
                 Fullscreen: gopts.Fullscreen,
 	}
 
-	engo.Run(eopts, &colonyScene{})
+	scene := &colonyScene{}
+	scene.DisplayOptions = gopts.DisplayOptions
+
+	engo.Run(eopts, scene)
 }

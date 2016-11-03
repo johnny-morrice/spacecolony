@@ -1,5 +1,9 @@
 package colony
 
+import (
+	"engo.io/engo/common"
+)
+
 type DustRegion struct {
 	Region *Region
 }
@@ -8,6 +12,10 @@ func (dr *DustRegion) GenerateTiles(rand *Random) {
 	for i, _ := range dr.Region.Tiles {
 		dr.Region.Tiles[i] = dr.dustpatch()
 	}
+}
+
+func (dr *DustRegion) Drawable() (common.Drawable, error) {
+	return common.LoadedSprite("png/grey-dust.png")
 }
 
 func (dr *DustRegion) dustpatch() *Tile {

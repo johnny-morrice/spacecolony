@@ -2,20 +2,28 @@ package colony
 
 import (
 	"fmt"
+
+	"engo.io/engo/common"
 )
 
 type Planet struct {
         Tiles []*Region
 
-        Width uint
-        Height uint
+        Width int
+        Height int
 }
 
-func (p *Planet) Init(rand Random) {
+func (p *Planet) Init(rand *Random) {
+	p.Tiles = make([]*Region, p.Width * p.Height)
+
+	for i, _ := range p.Tiles {
+		p.Tiles[i] = RandomRegion(rand)
+	}
 }
 
 type RegionClass interface {
 	GenerateTiles(rand *Random)
+	Drawable() (common.Drawable, error)
 }
 
 type Region struct {
@@ -25,10 +33,22 @@ type Region struct {
 
         Tiles []*Tile
 
-        Width uint
-        Height uint
+        Width int
+        Height int
 
         Neighbours []*Region
+}
+
+func RandomRegion(rand *Random) *Region {
+	r := &Region{}
+
+	r.Biome = RandomBiome(rand)
+	r.Width = DefaultRegionWidth
+	r.Height = DefaultRegionHeight
+
+	r.Init(rand)
+
+	return r
 }
 
 func (r *Region) Init(rand *Random) {
@@ -71,3 +91,6 @@ type BiomeType uint16
 const (
         BiomeDust = BiomeType(iota)
 )
+
+const DefaultRegionWidth = 1000
+const DefaultRegionHeight = 1000
