@@ -15,7 +15,7 @@ func (dr *DustRegion) GenerateTiles(rand *Random) {
 }
 
 func (dr *DustRegion) Texture() (*common.Texture, error) {
-	return common.LoadedSprite("png/grey-dust.png")
+	return common.LoadedSprite("sprite/grey-dust.png")
 }
 
 func (dr *DustRegion) dustpatch() *Tile {

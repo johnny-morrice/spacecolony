@@ -42,7 +42,7 @@ func (gs *geoscapeScene) Setup(world *ecs.World) {
 func loadAllAssets() error {
 	var matches []string
 
-	err := filepath.Walk("assets/png", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("assets/sprite", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ func loadAllAssets() error {
 
 		_, file := filepath.Split(path)
 
-		matches = append(matches, filepath.Join("png", file))
+		matches = append(matches, filepath.Join("sprite", file))
 
 		return nil
 	})
