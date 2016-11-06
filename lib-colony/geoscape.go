@@ -98,17 +98,15 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 		Height: geosys.Tilesize,
 	}
 
-	texture, err := region.Class.Texture()
+	texture, err := region.Class.Texture(float64(geosys.Tilesize) * 1.2)
 
 	if err != nil {
 		panic(err)
 	}
 
-	scale := geosys.Tilesize / texture.Width()
-
 	geotile.RenderComponent = common.RenderComponent{
 		Drawable: texture,
-		Scale: engo.Point{X: scale, Y: scale},
+		Scale: engo.Point{X: 1, Y: 1},
 	}
 
 	for _, system := range geosys.world.Systems() {
@@ -121,13 +119,11 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 
 func (geosys *GeoscapeSystem) embarktext() {
 	const titleSize = 50
-	fnt, err := monospace(titleSize)
+	texture, err := basicText("Select Landing Zone", titleSize)
 
 	if err != nil {
 		panic(err)
 	}
-
-	texture := fnt.Render("Select Landing Zone")
 
 	const y = 10
 	x := (geosys.ScreenWidth - texture.Width()) / 2

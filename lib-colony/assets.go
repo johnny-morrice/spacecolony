@@ -52,12 +52,18 @@ func loadAssetDir(dir string) error {
 	return engo.Files.Load(matches...)
 }
 
-func monospace(size float64) (*common.Font, error) {
+func stdfont() *common.Font {
 	fnt := &common.Font{}
 	fnt.URL = "font/monospace.ttf"
-	fnt.Size = size
 	fnt.BG = color.Black
 	fnt.FG = color.White
+
+	return fnt
+}
+
+func basicText(text string, size float64) (*common.Texture, error) {
+	fnt := stdfont()
+	fnt.Size = size
 
 	err := fnt.CreatePreloaded()
 
@@ -65,5 +71,7 @@ func monospace(size float64) (*common.Font, error) {
 		return nil, err
 	}
 
-	return fnt, nil
+	texture := fnt.Render(text)
+
+	return &texture, nil
 }

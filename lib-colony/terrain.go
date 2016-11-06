@@ -23,7 +23,7 @@ func (p *Planet) Init(rand *Random) {
 
 type RegionClass interface {
 	GenerateTiles(rand *Random)
-	Texture() (*common.Texture, error)
+	Texture(size float64) (*common.Texture, error)
 }
 
 type Region struct {
