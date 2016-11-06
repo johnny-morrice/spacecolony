@@ -110,7 +110,7 @@ func init() {
         persistent := playCmd.PersistentFlags()
 
         persistent.Uint("width", 1000, "Window width")
-        persistent.Uint("height", 800, "Window height")
+        persistent.Uint("height", 1000, "Window height")
         persistent.Uint("samples", 1, "Multisample count")
         persistent.Uint("fps", 60, "Maximum frames-per-second")
         persistent.Uint("tilesize", 20, "Size of tile")

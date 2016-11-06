@@ -30,11 +30,12 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
 			for j := 0; j < geosys.planet.Height; j++ {
 				region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
 
-				const margin = 0
+				const xOffset = 100
+				const yOffset = 100
 				fi := float32(i)
 				fj := float32(j)
-				x := (fi * geosys.Tilesize) + (fi * margin)
-				y := (fj * geosys.Tilesize) + (fj * margin)
+				x := (fi * geosys.Tilesize) + xOffset
+				y := (fj * geosys.Tilesize) + yOffset
 
 				geotile := GeoTile{}
 
@@ -79,8 +80,8 @@ func (geosys *GeoscapeSystem) regen() {
 	rand := &Random{}
 
 	geosys.planet = &Planet{}
-	geosys.planet.Width = 80
-	geosys.planet.Height = 80
+	geosys.planet.Width = 40
+	geosys.planet.Height = 40
 
 	geosys.planet.Init(rand)
 }
