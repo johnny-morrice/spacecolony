@@ -1,10 +1,41 @@
 package colony
 
 import (
+	"image/color"
+
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
 )
+
+type geoscapeScene struct {
+	DisplayOptions
+	EngineOptions
+}
+
+func (gs *geoscapeScene) Type() string { return "geoscape" }
+
+func (gs *geoscapeScene) Preload() {
+	err := loadAllAssets()
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (gs *geoscapeScene) Setup(world *ecs.World) {
+        common.SetBackground(color.Black)
+
+        world.AddSystem(&common.RenderSystem{})
+        world.AddSystem(&common.MouseSystem{})
+
+	geoscape := &GeoscapeSystem{}
+	geoscape.Tilesize = float32(gs.Tilesize)
+	geoscape.ScreenWidth = float32(gs.Width)
+	geoscape.ScreenHeight = float32(gs.Height)
+
+        world.AddSystem(geoscape)
+}
 
 type GeoscapeSystem struct {
 	Tilesize float32
@@ -27,6 +58,8 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
                 geosys.regen()
 
                 geosys.drawn = true
+
+		geosys.embarktext()
 
 		for i := 0; i < geosys.planet.Width; i++ {
 			for j := 0; j < geosys.planet.Height; j++ {
@@ -60,7 +93,7 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 	geotile.RegionComponent = RegionComponent{Region: region}
 
 	geotile.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{x, y},
+		Position: engo.Point{X: x, Y: y},
 		Width: geosys.Tilesize,
 		Height: geosys.Tilesize,
 	}
@@ -75,13 +108,47 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 
 	geotile.RenderComponent = common.RenderComponent{
 		Drawable: texture,
-		Scale: engo.Point{scale, scale},
+		Scale: engo.Point{X: scale, Y: scale},
 	}
 
 	for _, system := range geosys.world.Systems() {
 		switch sys := system.(type) {
 		case *common.RenderSystem:
 			sys.Add(&geotile.BasicEntity, &geotile.RenderComponent, &geotile.SpaceComponent)
+		}
+	}
+}
+
+func (geosys *GeoscapeSystem) embarktext() {
+	const titleSize = 50
+	fnt, err := monospace(titleSize)
+
+	if err != nil {
+		panic(err)
+	}
+
+	texture := fnt.Render("Select Landing Zone")
+
+	const y = 10
+	x := (geosys.ScreenWidth - texture.Width()) / 2
+
+	hud := HudSection{}
+	hud.BasicEntity = ecs.NewBasic()
+	hud.SpaceComponent = common.SpaceComponent{
+		Position: engo.Point{X: x, Y: y},
+		Width: texture.Width(),
+		Height: texture.Height(),
+	}
+
+	hud.RenderComponent = common.RenderComponent{
+		Drawable: texture,
+		Scale: engo.Point{X: 1, Y: 1},
+	}
+
+	for _, system := range geosys.world.Systems() {
+		switch sys := system.(type) {
+		case *common.RenderSystem:
+			sys.Add(&hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
 		}
 	}
 }
@@ -99,10 +166,17 @@ func (geosys *GeoscapeSystem) regen() {
 	geosys.planet.Init(rand)
 }
 
+type HudSection struct {
+	ecs.BasicEntity
+	common.RenderComponent
+	common.SpaceComponent
+}
+
 type GeoTile struct {
         ecs.BasicEntity
         common.RenderComponent
         common.SpaceComponent
+
 	RegionComponent
 }
 
