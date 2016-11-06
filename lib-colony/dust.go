@@ -14,7 +14,7 @@ func (dr *DustRegion) GenerateTiles(rand *Random) {
 	}
 }
 
-func (dr *DustRegion) Drawable() (common.Drawable, error) {
+func (dr *DustRegion) Texture() (*common.Texture, error) {
 	return common.LoadedSprite("png/grey-dust.png")
 }
 

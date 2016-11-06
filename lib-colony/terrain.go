@@ -23,7 +23,7 @@ func (p *Planet) Init(rand *Random) {
 
 type RegionClass interface {
 	GenerateTiles(rand *Random)
-	Drawable() (common.Drawable, error)
+	Texture() (*common.Texture, error)
 }
 
 type Region struct {
@@ -52,8 +52,6 @@ func RandomRegion(rand *Random) *Region {
 }
 
 func (r *Region) Init(rand *Random) {
-	r.Tiles = make([]*Tile, r.Width * r.Height)
-
 	switch r.Biome.Type {
 	case BiomeDust:
 		r.Class = &DustRegion{Region: r}
@@ -61,7 +59,9 @@ func (r *Region) Init(rand *Random) {
 		panic(fmt.Sprintf("Unknown BiomeType: %v", r.Biome.Type))
 	}
 
-	r.Class.GenerateTiles(rand)
+	// r.Tiles = make([]*Tile, r.Width * r.Height)
+
+	// r.Class.GenerateTiles(rand)
 }
 
 type Biome struct {

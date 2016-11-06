@@ -30,7 +30,7 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
 			for j := 0; j < geosys.planet.Height; j++ {
 				region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
 
-				const margin = 2
+				const margin = 0
 				fi := float32(i)
 				fj := float32(j)
 				x := (fi * geosys.Tilesize) + (fi * margin)
@@ -48,15 +48,17 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
 					Height: geosys.Tilesize,
 				}
 
-				drawable, err := region.Class.Drawable()
+				texture, err := region.Class.Texture()
 
 				if err != nil {
 					panic(err)
 				}
 
+				scale := geosys.Tilesize / texture.Width()
+
 				geotile.RenderComponent = common.RenderComponent{
-					Drawable: drawable,
-					Scale: engo.Point{1, 1},
+					Drawable: texture,
+					Scale: engo.Point{scale, scale},
 				}
 
 				for _, system := range geosys.world.Systems() {
