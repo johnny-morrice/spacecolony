@@ -10,13 +10,36 @@ import (
 	"engo.io/ecs"
 )
 
-type colonyScene struct {
+type geoscapeScene struct {
 	DisplayOptions
+	EngineOptions
 }
 
-func (cs *colonyScene) Type() string { return "colony" }
+func (gs *geoscapeScene) Type() string { return "geoscape" }
 
-func (cs *colonyScene) Preload() {
+func (gs *geoscapeScene) Preload() {
+	err := loadAllAssets()
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (gs *geoscapeScene) Setup(world *ecs.World) {
+        common.SetBackground(color.Black)
+
+        world.AddSystem(&common.RenderSystem{})
+        world.AddSystem(&common.MouseSystem{})
+
+	geoscape := &GeoscapeSystem{}
+	geoscape.Tilesize = float32(gs.Tilesize)
+	geoscape.ScreenWidth = float32(gs.Width)
+	geoscape.ScreenHeight = float32(gs.Height)
+
+        world.AddSystem(geoscape)
+}
+
+func loadAllAssets() error {
 	var matches []string
 
 	err := filepath.Walk("assets/png", func(path string, info os.FileInfo, err error) error {
@@ -36,27 +59,12 @@ func (cs *colonyScene) Preload() {
 	})
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	err = engo.Files.Load(matches...)
-
-	if err != nil {
-		panic(err)
-	}
+	return engo.Files.Load(matches...)
 }
 
-func (cs *colonyScene) Setup(world *ecs.World) {
-        common.SetBackground(color.Black)
-
-        world.AddSystem(&common.RenderSystem{})
-        world.AddSystem(&common.MouseSystem{})
-
-	geoscape := &GeoscapeSystem{}
-	geoscape.Tilesize = float32(cs.DisplayOptions.Tilesize)
-
-        world.AddSystem(geoscape)
-}
 type GameOptions struct {
         EngineOptions
 	DisplayOptions
@@ -86,8 +94,9 @@ func Play(gopts GameOptions) {
                 Fullscreen: gopts.Fullscreen,
 	}
 
-	scene := &colonyScene{}
+	scene := &geoscapeScene{}
 	scene.DisplayOptions = gopts.DisplayOptions
+	scene.EngineOptions = gopts.EngineOptions
 
 	engo.Run(eopts, scene)
 }
