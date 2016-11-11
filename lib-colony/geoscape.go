@@ -2,6 +2,7 @@ package colony
 
 import (
 	"image/color"
+	"math"
 
 	"engo.io/ecs"
 	"engo.io/engo"
@@ -9,7 +10,6 @@ import (
 )
 
 type geoscapeScene struct {
-	DisplayOptions
 	EngineOptions
 }
 
@@ -30,7 +30,6 @@ func (gs *geoscapeScene) Setup(world *ecs.World) {
         world.AddSystem(&common.MouseSystem{})
 
 	geoscape := &GeoscapeSystem{}
-	geoscape.Tilesize = float32(gs.Tilesize)
 	geoscape.ScreenWidth = float32(gs.Width)
 	geoscape.ScreenHeight = float32(gs.Height)
 
@@ -38,7 +37,10 @@ func (gs *geoscapeScene) Setup(world *ecs.World) {
 }
 
 type GeoscapeSystem struct {
-	Tilesize float32
+	TileSize float32
+	GeoSquareSize float32
+	OffsetX float32
+	OffsetY float32
 	ScreenWidth float32
 	ScreenHeight float32
 
@@ -51,6 +53,17 @@ type GeoscapeSystem struct {
 
 func (geosys *GeoscapeSystem) New(w *ecs.World) {
 	geosys.world = w
+
+	bound := geosys.ScreenWidth
+	bigger := geosys.ScreenHeight
+	if bound > bigger {
+		bigger, bound = bound, bigger
+	}
+
+	margin := bound / 4
+	geosys.GeoSquareSize = bound - margin
+	geosys.OffsetX = (geosys.ScreenWidth - geosys.GeoSquareSize) / 2
+	geosys.OffsetY = (geosys.ScreenHeight - geosys.GeoSquareSize) / 2
 }
 
 func (geosys *GeoscapeSystem) Update(dt float32) {
@@ -72,19 +85,10 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
 func (geosys *GeoscapeSystem) addtile(i, j int) {
 	region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
 
-	planetWidth := float32(geosys.planet.Width) * geosys.Tilesize
-	planetHeight := float32(geosys.planet.Height) * geosys.Tilesize
-	xOffset := (geosys.ScreenWidth - planetWidth) / 2
-	yOffset := (geosys.ScreenHeight - planetHeight) / 2
-
-	if xOffset < 0 || yOffset < 0 {
-		panic("Small windows not supported")
-	}
-
-	fi := float32(i)
-	fj := float32(j)
-	x := (fi * geosys.Tilesize) + xOffset
-	y := (fj * geosys.Tilesize) + yOffset
+	fi, fj := float32(i), float32(j)
+	var margin float32 = 2
+	x := (fi * geosys.TileSize) + geosys.OffsetX + (fi * margin)
+	y := (fj * geosys.TileSize) + geosys.OffsetY + (fj * margin)
 
 	geotile := GeoTile{}
 
@@ -94,11 +98,13 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 
 	geotile.SpaceComponent = common.SpaceComponent{
 		Position: engo.Point{X: x, Y: y},
-		Width: geosys.Tilesize,
-		Height: geosys.Tilesize,
+		Width: geosys.TileSize,
+		Height: geosys.TileSize,
 	}
 
-	drawable, err := region.Class.Drawable(float64(geosys.Tilesize) * 1.2)
+	regionsize := geosys.TileSize - margin
+
+	drawable, err := region.Class.Drawable(regionsize)
 
 	if err != nil {
 		panic(err)
@@ -118,8 +124,8 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 }
 
 func (geosys *GeoscapeSystem) embarktext() {
-	const titleSize = 50
-	texture, err := basicText("Select Landing Zone", titleSize)
+	titleSize := (geosys.ScreenHeight - geosys.GeoSquareSize) / 6
+	texture, err := basictext("Select Landing Zone", titleSize)
 
 	if err != nil {
 		panic(err)
@@ -155,11 +161,23 @@ func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {
 func (geosys *GeoscapeSystem) regen() {
 	rand := &Random{}
 
+	const planetsize = 40
 	geosys.planet = &Planet{}
-	geosys.planet.Width = 40
-	geosys.planet.Height = 40
+	geosys.planet.Width = planetsize
+	geosys.planet.Height = planetsize
+	geosys.TileSize = evenfloor(geosys.GeoSquareSize / planetsize)
 
 	geosys.planet.Init(rand)
+}
+
+func evenfloor(x float32) float32 {
+	x = float32(math.Floor(float64(x)))
+
+	if int(x) % 2 == 0 {
+		return x
+	} else {
+		return x - 1
+	}
 }
 
 type HudSection struct {

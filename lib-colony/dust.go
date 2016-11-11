@@ -16,7 +16,7 @@ func (dr *DustRegion) GenerateTiles(rand *Random) {
 	}
 }
 
-func (dr *DustRegion) Drawable(size float64) (common.Drawable, error) {
+func (dr *DustRegion) Drawable(size float32) (common.Drawable, error) {
 	const gray = 200
 	c := color.NRGBA{R: gray, G: gray, B: gray, A: 255}
 

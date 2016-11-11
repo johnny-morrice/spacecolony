@@ -6,11 +6,6 @@ import (
 
 type GameOptions struct {
         EngineOptions
-	DisplayOptions
-}
-
-type DisplayOptions struct {
-	Tilesize uint
 }
 
 type EngineOptions struct {
@@ -34,7 +29,6 @@ func Play(gopts GameOptions) {
 	}
 
 	scene := &geoscapeScene{}
-	scene.DisplayOptions = gopts.DisplayOptions
 	scene.EngineOptions = gopts.EngineOptions
 
 	engo.Run(eopts, scene)

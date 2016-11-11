@@ -8,7 +8,7 @@ import (
 	"engo.io/engo/common"
 )
 
-func uniformimg(c color.NRGBA, width, height float64) *image.NRGBA {
+func uniformimg(c color.NRGBA, width, height float32) *image.NRGBA {
 	iw, ih := int(width), int(height)
 
 	bounds := image.Rect(0, 0, iw, ih)
@@ -25,4 +25,19 @@ func imgtexture(img *image.NRGBA) *common.Texture {
 
 	texture := common.NewTextureSingle(obj)
 	return &texture
+}
+
+func basictext(text string, size float32) (*common.Texture, error) {
+	fnt := stdfont()
+	fnt.Size = float64(size)
+
+	err := fnt.CreatePreloaded()
+
+	if err != nil {
+		return nil, err
+	}
+
+	texture := fnt.Render(text)
+
+	return &texture, nil
 }

@@ -60,18 +60,3 @@ func stdfont() *common.Font {
 
 	return fnt
 }
-
-func basicText(text string, size float64) (*common.Texture, error) {
-	fnt := stdfont()
-	fnt.Size = size
-
-	err := fnt.CreatePreloaded()
-
-	if err != nil {
-		return nil, err
-	}
-
-	texture := fnt.Render(text)
-
-	return &texture, nil
-}
