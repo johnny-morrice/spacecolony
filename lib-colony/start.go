@@ -8,9 +8,13 @@ type GameOptions struct {
         EngineOptions
 }
 
-type EngineOptions struct {
-        Width uint
+type ScreenDims struct {
+	Width uint
         Height uint
+}
+
+type EngineOptions struct {
+	ScreenDims
         FPS uint
         Samples uint
         Vsync bool
@@ -28,8 +32,8 @@ func Play(gopts GameOptions) {
                 Fullscreen: gopts.Fullscreen,
 	}
 
-	scene := &geoscapeScene{}
-	scene.EngineOptions = gopts.EngineOptions
+	scene := &GeoscapeScene{}
+	scene.ScreenDims = gopts.ScreenDims
 
 	engo.Run(eopts, scene)
 }

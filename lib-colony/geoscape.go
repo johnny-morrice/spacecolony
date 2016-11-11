@@ -3,20 +3,19 @@ package colony
 import (
 	"fmt"
 	"image/color"
-	"math"
 
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
 )
 
-type geoscapeScene struct {
-	EngineOptions
+type GeoscapeScene struct {
+	ScreenDims
 }
 
-func (gs *geoscapeScene) Type() string { return "geoscape" }
+func (gs *GeoscapeScene) Type() string { return "geoscape" }
 
-func (gs *geoscapeScene) Preload() {
+func (gs *GeoscapeScene) Preload() {
 	err := loadAllAssets()
 
 	if err != nil {
@@ -24,26 +23,20 @@ func (gs *geoscapeScene) Preload() {
 	}
 }
 
-func (gs *geoscapeScene) Setup(world *ecs.World) {
+func (gs *GeoscapeScene) Setup(world *ecs.World) {
         common.SetBackground(color.Black)
 
         world.AddSystem(&common.RenderSystem{})
         world.AddSystem(&common.MouseSystem{})
 
-	geoscape := &GeoscapeSystem{}
-	geoscape.ScreenWidth = float32(gs.Width)
-	geoscape.ScreenHeight = float32(gs.Height)
+	geosys := &GeoscapeSystem{}
+	geosys.TileView = NewTileView(gs.ScreenDims)
 
-        world.AddSystem(geoscape)
+        world.AddSystem(geosys)
 }
 
 type GeoscapeSystem struct {
-	TileSize float32
-	GeoSquareSize float32
-	OffsetX float32
-	OffsetY float32
-	ScreenWidth float32
-	ScreenHeight float32
+	TileView
 
         drawn bool
 
@@ -57,17 +50,6 @@ type GeoscapeSystem struct {
 
 func (geosys *GeoscapeSystem) New(w *ecs.World) {
 	geosys.world = w
-
-	bound := geosys.ScreenWidth
-	bigger := geosys.ScreenHeight
-	if bound > bigger {
-		bigger, bound = bound, bigger
-	}
-
-	margin := bound / 4
-	geosys.GeoSquareSize = bound - margin
-	geosys.OffsetX = (geosys.ScreenWidth - geosys.GeoSquareSize) / 2
-	geosys.OffsetY = (geosys.ScreenHeight - geosys.GeoSquareSize) / 2
 }
 
 func (geosys *GeoscapeSystem) Update(dt float32) {
@@ -108,7 +90,7 @@ func (geosys *GeoscapeSystem) wipeinfo() {
 }
 
 func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
-	size := (geosys.ScreenHeight - geosys.GeoSquareSize) / 12
+	size := (geosys.ScreenHeight - geosys.ViewSquareSize) / 12
 
 	position := func(texture *common.Texture) (float32, float32) {
 		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
@@ -163,7 +145,7 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 }
 
 func (geosys *GeoscapeSystem) embarktext() {
-	titleSize := (geosys.ScreenHeight - geosys.GeoSquareSize) / 6
+	titleSize := (geosys.ScreenHeight - geosys.ViewSquareSize) / 6
 
 	position := func(texture *common.Texture) (float32, float32) {
 		return (geosys.ScreenWidth - texture.Width()) / 2, 10
@@ -184,50 +166,9 @@ func (geosys *GeoscapeSystem) regen() {
 	geosys.planet = &Planet{}
 	geosys.planet.Width = planetsize
 	geosys.planet.Height = planetsize
-	geosys.TileSize = evenfloor(geosys.GeoSquareSize / planetsize)
+	geosys.TileSize = evenfloor(geosys.ViewSquareSize / planetsize)
 
 	geosys.planet.Init(rand)
-}
-
-func hudmsg(msg string, size float32, position func(*common.Texture) (float32, float32)) *HudSection {
-	texture, err := basictext(msg, size)
-
-	if err != nil {
-		panic(err)
-	}
-
-	x, y := position(texture)
-
-	hud := &HudSection{}
-	hud.BasicEntity = ecs.NewBasic()
-	hud.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: x, Y: y},
-		Width: texture.Width(),
-		Height: texture.Height(),
-	}
-
-	hud.RenderComponent = common.RenderComponent{
-		Drawable: texture,
-		Scale: engo.Point{X: 1, Y: 1},
-	}
-
-	return hud
-}
-
-func evenfloor(x float32) float32 {
-	x = float32(math.Floor(float64(x)))
-
-	if int(x) % 2 == 0 {
-		return x
-	} else {
-		return x - 1
-	}
-}
-
-type HudSection struct {
-	ecs.BasicEntity
-	common.RenderComponent
-	common.SpaceComponent
 }
 
 type GeoTile struct {

@@ -95,3 +95,19 @@ const (
 
 const DefaultRegionWidth = 1000
 const DefaultRegionHeight = 1000
+
+type Tile struct {
+	Type TileType
+
+	Class TileClass
+}
+
+type TileType uint8
+
+type TileClass interface {
+	Generate(rand *Random)
+}
+
+const (
+	TileDust = TileType(iota)
+)
