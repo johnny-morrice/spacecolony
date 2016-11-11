@@ -98,14 +98,14 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 		Height: geosys.Tilesize,
 	}
 
-	texture, err := region.Class.Texture(float64(geosys.Tilesize) * 1.2)
+	drawable, err := region.Class.Drawable(float64(geosys.Tilesize) * 1.2)
 
 	if err != nil {
 		panic(err)
 	}
 
 	geotile.RenderComponent = common.RenderComponent{
-		Drawable: texture,
+		Drawable: drawable,
 		Scale: engo.Point{X: 1, Y: 1},
 	}
 

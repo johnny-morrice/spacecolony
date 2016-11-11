@@ -16,22 +16,13 @@ func (dr *DustRegion) GenerateTiles(rand *Random) {
 	}
 }
 
-func (dr *DustRegion) Texture(size float64) (*common.Texture, error) {
-	fnt := stdfont()
-	fnt.Size = size
-
+func (dr *DustRegion) Drawable(size float64) (common.Drawable, error) {
 	const gray = 200
-	fnt.FG = color.NRGBA{R: gray, G: gray, B: gray, A: 255}
+	c := color.NRGBA{R: gray, G: gray, B: gray, A: 255}
 
-	err := fnt.CreatePreloaded()
+	img := uniformimg(c, size, size)
 
-	if err != nil {
-		return nil, err
-	}
-
-	texture := fnt.Render("#")
-
-	return &texture, nil
+	return imgtexture(img), nil
 }
 
 func (dr *DustRegion) dustpatch() *Tile {
