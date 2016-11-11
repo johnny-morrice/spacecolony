@@ -114,11 +114,11 @@ func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
 		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
 	}
 
-	msg := fmt.Sprintf("%v at (%v,%v)", geotile.Region.Class.ShortName(), geotile.x, geotile.y)
+	msg := fmt.Sprintf("%v (%v,%v)", geotile.Region.Class.ShortName(), geotile.x, geotile.y)
 
 	hud := hudmsg(msg, size, position)
 
-	geosys.regioninfo = &hud
+	geosys.regioninfo = hud
 
 	renderentity(geosys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
 }
@@ -189,7 +189,7 @@ func (geosys *GeoscapeSystem) regen() {
 	geosys.planet.Init(rand)
 }
 
-func hudmsg(msg string, size float32, position func(*common.Texture) (float32, float32)) HudSection {
+func hudmsg(msg string, size float32, position func(*common.Texture) (float32, float32)) *HudSection {
 	texture, err := basictext(msg, size)
 
 	if err != nil {
@@ -198,7 +198,7 @@ func hudmsg(msg string, size float32, position func(*common.Texture) (float32, f
 
 	x, y := position(texture)
 
-	hud := HudSection{}
+	hud := &HudSection{}
 	hud.BasicEntity = ecs.NewBasic()
 	hud.SpaceComponent = common.SpaceComponent{
 		Position: engo.Point{X: x, Y: y},

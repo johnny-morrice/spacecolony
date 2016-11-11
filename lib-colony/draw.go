@@ -37,7 +37,7 @@ func basictext(text string, size float32) (*common.Texture, error) {
 		return nil, err
 	}
 
-	texture := fnt.Render(text)
+	texture := fnt.Render(text + " ")
 
 	return &texture, nil
 }
