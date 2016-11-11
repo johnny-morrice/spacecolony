@@ -106,6 +106,8 @@ type TileType uint8
 
 type TileClass interface {
 	Generate(rand *Random)
+	ShortName() string
+	Drawable(size float32) (common.Drawable, error)
 }
 
 const (

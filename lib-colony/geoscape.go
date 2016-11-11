@@ -57,16 +57,9 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
 		geosys.updatehud()
 	} else {
                 geosys.regen()
-
-                geosys.drawn = true
-
 		geosys.embarktext()
 
-		for i := 0; i < geosys.planet.Width; i++ {
-			for j := 0; j < geosys.planet.Height; j++ {
-				geosys.addtile(i, j)
-			}
-		}
+		geosys.drawn = true
         }
 }
 
@@ -96,7 +89,7 @@ func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
 		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
 	}
 
-	msg := fmt.Sprintf("%v (%v,%v)", geotile.Region.Class.ShortName(), geotile.x, geotile.y)
+	msg := fmt.Sprintf("%v (%v,%v)", geotile.Region.Class.ShortName(), geotile.X, geotile.Y)
 
 	hud := hudmsg(msg, size, position)
 
@@ -106,25 +99,14 @@ func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
 }
 
 func (geosys *GeoscapeSystem) addtile(i, j int) {
-	region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
-
-	fi, fj := float32(i), float32(j)
-	var margin float32 = 2
-	x := (fi * geosys.TileSize) + geosys.OffsetX + (fi * margin)
-	y := (fj * geosys.TileSize) + geosys.OffsetY + (fj * margin)
-
-	geotile := &GeoTile{x: i, y: j}
+	geotile := &GeoTile{}
 
 	geotile.BasicEntity = ecs.NewBasic()
 
-	geotile.RegionComponent = RegionComponent{Region: region}
+	region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
+	geotile.RegionComponent = RegionComponent{X: i, Y: j, Region: region}
 
-	geotile.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: x, Y: y},
-		Width: geosys.TileSize,
-		Height: geosys.TileSize,
-	}
-
+	const margin = 2
 	regionsize := geosys.TileSize - margin
 
 	drawable, err := region.Class.Drawable(regionsize)
@@ -136,6 +118,16 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 	geotile.RenderComponent = common.RenderComponent{
 		Drawable: drawable,
 		Scale: engo.Point{X: 1, Y: 1},
+	}
+
+	fi, fj := float32(i), float32(j)
+	x := (fi * geosys.TileSize) + geosys.OffsetX + (fi * margin)
+	y := (fj * geosys.TileSize) + geosys.OffsetY + (fj * margin)
+
+	geotile.SpaceComponent = common.SpaceComponent{
+		Position: engo.Point{X: x, Y: y},
+		Width: geosys.TileSize,
+		Height: geosys.TileSize,
 	}
 
 	geosys.tiles = append(geosys.tiles, geotile)
@@ -169,6 +161,12 @@ func (geosys *GeoscapeSystem) regen() {
 	geosys.TileSize = evenfloor(geosys.ViewSquareSize / planetsize)
 
 	geosys.planet.Init(rand)
+
+	for i := 0; i < geosys.planet.Width; i++ {
+		for j := 0; j < geosys.planet.Height; j++ {
+			geosys.addtile(i, j)
+		}
+	}
 }
 
 type GeoTile struct {
@@ -177,10 +175,10 @@ type GeoTile struct {
         common.SpaceComponent
 	common.MouseComponent
 
-	x, y int
 	RegionComponent
 }
 
 type RegionComponent struct {
+	X, Y int
 	Region *Region
 }

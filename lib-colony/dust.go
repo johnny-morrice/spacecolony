@@ -43,3 +43,11 @@ type DustTile struct {
 func (dt *DustTile) Generate(rand *Random) {
 	dt.Tile.Type = TileDust
 }
+
+func (dt *DustTile) ShortName() string {
+	return "Dust"
+}
+
+func (dt *DustTile) Drawable(size float32) (common.Drawable, error) {
+	return nil, nil
+}
