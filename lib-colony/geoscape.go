@@ -1,6 +1,7 @@
 package colony
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 
@@ -49,6 +50,9 @@ type GeoscapeSystem struct {
         world *ecs.World
 
 	planet *Planet
+
+	tiles []*GeoTile
+	regioninfo *HudSection
 }
 
 func (geosys *GeoscapeSystem) New(w *ecs.World) {
@@ -67,7 +71,9 @@ func (geosys *GeoscapeSystem) New(w *ecs.World) {
 }
 
 func (geosys *GeoscapeSystem) Update(dt float32) {
-        if !geosys.drawn {
+        if geosys.drawn {
+		geosys.updatehud()
+	} else {
                 geosys.regen()
 
                 geosys.drawn = true
@@ -82,6 +88,41 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
         }
 }
 
+func (geosys *GeoscapeSystem) updatehud() {
+	geosys.wipeinfo()
+
+	for _, geotile := range geosys.tiles {
+		if geotile.Hovered {
+			geosys.displayinfo(geotile)
+			break
+		}
+	}
+}
+
+func (geosys *GeoscapeSystem) wipeinfo() {
+	if geosys.regioninfo != nil {
+		derenderentity(geosys.world, &geosys.regioninfo.BasicEntity)
+	}
+
+	geosys.regioninfo = nil
+}
+
+func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
+	size := (geosys.ScreenHeight - geosys.GeoSquareSize) / 12
+
+	position := func(texture *common.Texture) (float32, float32) {
+		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
+	}
+
+	msg := fmt.Sprintf("%v at (%v,%v)", geotile.Region.Class.ShortName(), geotile.x, geotile.y)
+
+	hud := hudmsg(msg, size, position)
+
+	geosys.regioninfo = &hud
+
+	renderentity(geosys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
+}
+
 func (geosys *GeoscapeSystem) addtile(i, j int) {
 	region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
 
@@ -90,7 +131,7 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 	x := (fi * geosys.TileSize) + geosys.OffsetX + (fi * margin)
 	y := (fj * geosys.TileSize) + geosys.OffsetY + (fj * margin)
 
-	geotile := GeoTile{}
+	geotile := &GeoTile{x: i, y: j}
 
 	geotile.BasicEntity = ecs.NewBasic()
 
@@ -115,44 +156,22 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 		Scale: engo.Point{X: 1, Y: 1},
 	}
 
-	for _, system := range geosys.world.Systems() {
-		switch sys := system.(type) {
-		case *common.RenderSystem:
-			sys.Add(&geotile.BasicEntity, &geotile.RenderComponent, &geotile.SpaceComponent)
-		}
-	}
+	geosys.tiles = append(geosys.tiles, geotile)
+
+	mouseentity(geosys.world, &geotile.BasicEntity, &geotile.MouseComponent, &geotile.RenderComponent, &geotile.SpaceComponent)
+	renderentity(geosys.world, &geotile.BasicEntity, &geotile.RenderComponent, &geotile.SpaceComponent)
 }
 
 func (geosys *GeoscapeSystem) embarktext() {
 	titleSize := (geosys.ScreenHeight - geosys.GeoSquareSize) / 6
-	texture, err := basictext("Select Landing Zone", titleSize)
 
-	if err != nil {
-		panic(err)
+	position := func(texture *common.Texture) (float32, float32) {
+		return (geosys.ScreenWidth - texture.Width()) / 2, 10
 	}
 
-	const y = 10
-	x := (geosys.ScreenWidth - texture.Width()) / 2
+	hud := hudmsg("Select Landing Zone", titleSize, position)
 
-	hud := HudSection{}
-	hud.BasicEntity = ecs.NewBasic()
-	hud.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: x, Y: y},
-		Width: texture.Width(),
-		Height: texture.Height(),
-	}
-
-	hud.RenderComponent = common.RenderComponent{
-		Drawable: texture,
-		Scale: engo.Point{X: 1, Y: 1},
-	}
-
-	for _, system := range geosys.world.Systems() {
-		switch sys := system.(type) {
-		case *common.RenderSystem:
-			sys.Add(&hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
-		}
-	}
+	renderentity(geosys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
 }
 
 func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {
@@ -168,6 +187,31 @@ func (geosys *GeoscapeSystem) regen() {
 	geosys.TileSize = evenfloor(geosys.GeoSquareSize / planetsize)
 
 	geosys.planet.Init(rand)
+}
+
+func hudmsg(msg string, size float32, position func(*common.Texture) (float32, float32)) HudSection {
+	texture, err := basictext(msg, size)
+
+	if err != nil {
+		panic(err)
+	}
+
+	x, y := position(texture)
+
+	hud := HudSection{}
+	hud.BasicEntity = ecs.NewBasic()
+	hud.SpaceComponent = common.SpaceComponent{
+		Position: engo.Point{X: x, Y: y},
+		Width: texture.Width(),
+		Height: texture.Height(),
+	}
+
+	hud.RenderComponent = common.RenderComponent{
+		Drawable: texture,
+		Scale: engo.Point{X: 1, Y: 1},
+	}
+
+	return hud
 }
 
 func evenfloor(x float32) float32 {
@@ -190,7 +234,9 @@ type GeoTile struct {
         ecs.BasicEntity
         common.RenderComponent
         common.SpaceComponent
+	common.MouseComponent
 
+	x, y int
 	RegionComponent
 }
 

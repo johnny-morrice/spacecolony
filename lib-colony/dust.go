@@ -25,6 +25,10 @@ func (dr *DustRegion) Drawable(size float32) (common.Drawable, error) {
 	return imgtexture(img), nil
 }
 
+func (dr *DustRegion) ShortName() string {
+	return "Dust"
+}
+
 func (dr *DustRegion) dustpatch() *Tile {
 	t := &Tile{}
 	t.Class = &DustTile{Tile: t}

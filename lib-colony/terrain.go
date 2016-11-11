@@ -24,6 +24,7 @@ func (p *Planet) Init(rand *Random) {
 type RegionClass interface {
 	GenerateTiles(rand *Random)
 	Drawable(size float32) (common.Drawable, error)
+	ShortName() string
 }
 
 type Region struct {
