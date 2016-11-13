@@ -66,7 +66,7 @@ func (tacsys *TacticalSystem) Remove(ecs.BasicEntity) {
 }
 
 func (tacsys *TacticalSystem) regen() {
-	tacsys.Region.Class.GenerateTiles(&Random{})
+	tacsys.Region.Class.GenerateTiles()
 
 	for i := 0; i < tacsys.Region.Width; i++ {
 		for j := 0; j < tacsys.Region.Height; j++ {

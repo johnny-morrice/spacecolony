@@ -13,16 +13,16 @@ type Planet struct {
         Height int
 }
 
-func (p *Planet) Init(rand *Random) {
+func (p *Planet) Init() {
 	p.Tiles = make([]*Region, p.Width * p.Height)
 
 	for i, _ := range p.Tiles {
-		p.Tiles[i] = RandomRegion(rand)
+		p.Tiles[i] = RandomRegion()
 	}
 }
 
 type RegionClass interface {
-	GenerateTiles(rand *Random)
+	GenerateTiles()
 	Drawable(size float32) (common.Drawable, error)
 	ShortName() string
 }
@@ -40,19 +40,19 @@ type Region struct {
         Neighbours []*Region
 }
 
-func RandomRegion(rand *Random) *Region {
+func RandomRegion() *Region {
 	r := &Region{}
 
-	r.Biome = RandomBiome(rand)
+	r.Biome = RandomBiome()
 	r.Width = DefaultRegionWidth
 	r.Height = DefaultRegionHeight
 
-	r.Init(rand)
+	r.Init()
 
 	return r
 }
 
-func (r *Region) Init(rand *Random) {
+func (r *Region) Init() {
 	switch r.Biome.Type {
 	case BiomeDust:
 		r.Class = &DustRegion{Region: r}
@@ -70,7 +70,7 @@ type Biome struct {
         Shape BiomeShapeType
 }
 
-func RandomBiome(rand *Random) *Biome {
+func RandomBiome() *Biome {
         flatDust := &Biome{}
 	flatDust.Type = BiomeDust
 	flatDust.Shape = BiomeShapeFlat
@@ -93,23 +93,17 @@ const (
         BiomeDust = BiomeType(iota)
 )
 
+// TODO Tile used to have more members, now not sure about the structure.
 type Tile struct {
-	Type TileType
-
 	Class TileClass
 }
 
-type TileType uint8
 
 type TileClass interface {
-	Generate(rand *Random)
+	Init()
 	ShortName() string
 	Drawable(size float32) (common.Drawable, error)
 }
-
-const (
-	TileDust = TileType(iota)
-)
 
 // TODO much larger crushes the CPU: implement sparse matrix.
 const DefaultRegionWidth = 100

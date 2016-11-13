@@ -171,15 +171,13 @@ func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {
 }
 
 func (geosys *GeoscapeSystem) regen() {
-	rand := &Random{}
-
 	const planetsize = 40
 	geosys.planet = &Planet{}
 	geosys.planet.Width = planetsize
 	geosys.planet.Height = planetsize
 	geosys.TileSize = evenfloor(geosys.ViewSquareSize / planetsize)
 
-	geosys.planet.Init(rand)
+	geosys.planet.Init()
 
 	for i := 0; i < geosys.planet.Width; i++ {
 		for j := 0; j < geosys.planet.Height; j++ {
