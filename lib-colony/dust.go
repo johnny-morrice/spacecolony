@@ -63,14 +63,17 @@ func (gt *GravelTile) ShortName() string {
 }
 
 func init() {
-	const gravelsize = 128
 	const gravelseed = 10
 
-	_gravelimg = noiseimg(gravelseed, gravelsize)
+	_gravelimg = noiseimg(gravelseed, _gravelsize)
 }
 
+const _gravelsize = 128
 var _gravelimg *image.NRGBA
 func (gt *GravelTile) Drawable(size float32) (common.Drawable, error) {
+	if size > _gravelsize {
+		panic("Gravel size exceeds maximum")
+	}
 	isz := int(math.Floor(float64(size)))
 	rect := image.Rectangle{Max: image.Point{X: isz, Y: isz}}
 	img := image.NewNRGBA(rect)
