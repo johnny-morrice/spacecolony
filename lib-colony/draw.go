@@ -4,9 +4,12 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 
 	"engo.io/ecs"
 	"engo.io/engo/common"
+
+	"github.com/ojrac/opensimplex-go"
 )
 
 func uniformimg(c color.NRGBA, width, height float32) *image.NRGBA {
@@ -41,6 +44,25 @@ func basictext(text string, size float32) (*common.Texture, error) {
 	texture := fnt.Render(text + " ")
 
 	return &texture, nil
+}
+
+func noiseimg(seed int64, size int) *image.NRGBA {
+	rect := image.Rectangle{Max: image.Point{X:size, Y: size}}
+	img := image.NewNRGBA(rect)
+
+	noise := opensimplex.NewWithSeed(seed)
+
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			shade := noise.Eval2(float64(i), float64(j))
+			gr := uint8(math.Floor(shade + 1) * 125)
+			col := color.NRGBA{R: gr, G: gr, B: gr, A: 255}
+
+			img.SetNRGBA(i, j, col)
+		}
+	}
+
+	return img
 }
 
 type ScreenDims struct {

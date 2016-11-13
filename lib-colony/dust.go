@@ -8,8 +8,6 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/ojrac/opensimplex-go"
-
 	"engo.io/engo/common"
 )
 
@@ -65,23 +63,10 @@ func (gt *GravelTile) ShortName() string {
 }
 
 func init() {
-	const sz = 128
+	const gravelsize = 128
 	const gravelseed = 10
 
-	rect := image.Rectangle{Max: image.Point{X:sz, Y: sz}}
-	_gravelimg = image.NewNRGBA(rect)
-
-	noise := opensimplex.NewWithSeed(gravelseed)
-
-	for i := 0; i < sz; i++ {
-		for j := 0; j < sz; j++ {
-			shade := noise.Eval2(float64(i), float64(j))
-			gr := uint8(math.Floor(shade + 1) * 125)
-			col := color.NRGBA{R: gr, G: gr, B: gr, A: 255}
-
-			_gravelimg.SetNRGBA(i, j, col)
-		}
-	}
+	_gravelimg = noiseimg(gravelseed, gravelsize)
 }
 
 var _gravelimg *image.NRGBA
