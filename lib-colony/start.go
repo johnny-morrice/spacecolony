@@ -8,13 +8,13 @@ type GameOptions struct {
         EngineOptions
 }
 
-type ScreenDims struct {
+type ScreenOpts struct {
 	Width uint
         Height uint
 }
 
 type EngineOptions struct {
-	ScreenDims
+	ScreenOpts
         FPS uint
         Samples uint
         Vsync bool
@@ -33,7 +33,10 @@ func Play(opts GameOptions) {
 	}
 
 	scene := &GeoscapeScene{}
-	scene.TileView = NewTileView(opts.ScreenDims)
+	scene.ScreenDims = ScreenDims{
+		ScreenWidth: float32(opts.Width),
+		ScreenHeight: float32(opts.Height),
+	}
 
 	engo.Run(runopts, scene)
 }

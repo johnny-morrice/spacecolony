@@ -1,8 +1,9 @@
 package colony
 
 import (
-	"engo.io/engo/common"
 	"engo.io/ecs"
+	"engo.io/engo"
+	"engo.io/engo/common"
 )
 
 func renderentity(w *ecs.World, b *ecs.BasicEntity, r *common.RenderComponent, s *common.SpaceComponent) {
@@ -29,5 +30,28 @@ func mouseentity(w *ecs.World, b *ecs.BasicEntity, m *common.MouseComponent, r *
 		case *common.MouseSystem:
 			sys.Add(b, m, s, r)
 		}
+	}
+}
+
+func rndcomp(drawable common.Drawable) common.RenderComponent {
+	return common.RenderComponent{
+		Drawable: drawable,
+		Scale: engo.Point{X: 1, Y: 1},
+	}
+}
+
+func spacecomprect(xmin, ymin, xmax, ymax float32) common.SpaceComponent {
+	return common.SpaceComponent{
+		Position: engo.Point{X: xmin, Y: ymin},
+		Width: xmin + xmax,
+		Height: ymin + ymax,
+	}
+}
+
+func spacecompsz(x, y, width, height float32) common.SpaceComponent {
+	return common.SpaceComponent{
+		Position: engo.Point{X: x, Y: y},
+		Width: width,
+		Height: height,
 	}
 }

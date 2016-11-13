@@ -5,12 +5,12 @@ import (
 	"image/color"
 
 	"engo.io/ecs"
-	"engo.io/engo"
 	"engo.io/engo/common"
 )
 
 type TacticalScene struct {
-	TileView
+	TileSize float32
+	ScreenDims
 
 	Region *Region
 }
@@ -26,14 +26,16 @@ func (ts *TacticalScene) Setup(world *ecs.World) {
 	world.AddSystem(&common.MouseSystem{})
 
 	tacsys := &TacticalSystem{}
-	tacsys.TileView = ts.TileView
+	tacsys.TileSize = ts.TileSize
+	tacsys.ScreenDims = ts.ScreenDims
 	tacsys.Region = ts.Region
 
 	world.AddSystem(tacsys)
 }
 
 type TacticalSystem struct {
-	TileView
+	ScreenDims
+	TileSize float32
 
 	Region *Region
 
@@ -71,6 +73,14 @@ func (tacsys *TacticalSystem) regen() {
 			tacsys.addtile(i, j)
 		}
 	}
+
+	tacsys.hudbackground()
+}
+
+func (tacsys *TacticalSystem) hudbackground() {
+	bg := hudbg(0, tacsys.ScreenHeight - 50, tacsys.ScreenWidth, tacsys.ScreenHeight)
+
+	renderentity(tacsys.world, &bg.BasicEntity, &bg.RenderComponent, &bg.SpaceComponent)
 }
 
 func (tacsys *TacticalSystem) addtile(i, j int) {
@@ -88,20 +98,13 @@ func (tacsys *TacticalSystem) addtile(i, j int) {
 		panic(err)
 	}
 
-	tactile.RenderComponent = common.RenderComponent{
-		Drawable: drawable,
-		Scale: engo.Point{X: 1, Y: 1},
-	}
+	tactile.RenderComponent = rndcomp(drawable)
 
 	fi, fj := float32(i), float32(j)
-	x := (fi * tacsys.TileSize) + tacsys.OffsetX
-	y := (fj * tacsys.TileSize) + tacsys.OffsetY
+	x := fi * tacsys.TileSize
+	y := fj * tacsys.TileSize
 
-	tactile.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: x, Y: y},
-		Width: tacsys.TileSize,
-		Height: tacsys.TileSize,
-	}
+	tactile.SpaceComponent = spacecompsz(x, y, tacsys.TileSize, tacsys.TileSize)
 
 	tacsys.tiles = append(tacsys.tiles, tactile)
 
@@ -130,7 +133,7 @@ func (tacsys *TacticalSystem) wipeinfo() {
 }
 
 func (tacsys *TacticalSystem) displayinfo(tactile *TacTile) {
-	size := (tacsys.ScreenHeight - tacsys.ViewSquareSize) / 12
+	size := tacsys.TextSize()
 
 	position := func(texture *common.Texture) (float32, float32) {
 		return (tacsys.ScreenWidth - texture.Width()) / 2, tacsys.ScreenWidth - 10 - size

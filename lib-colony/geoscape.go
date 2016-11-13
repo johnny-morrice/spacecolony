@@ -10,7 +10,7 @@ import (
 )
 
 type GeoscapeScene struct {
-	TileView
+	ScreenDims
 }
 
 func (gs *GeoscapeScene) Type() string { return "geoscape" }
@@ -30,13 +30,16 @@ func (gs *GeoscapeScene) Setup(world *ecs.World) {
         world.AddSystem(&common.MouseSystem{})
 
 	geosys := &GeoscapeSystem{}
-	geosys.TileView = gs.TileView
+	geosys.CenterTiles = NewCenterTiles(gs.ScreenDims)
+	geosys.ScreenDims = gs.ScreenDims
 
         world.AddSystem(geosys)
 }
 
 type GeoscapeSystem struct {
-	TileView
+	ScreenDims
+	CenterTiles
+	TileSize float32
 
         drawn bool
 
@@ -91,7 +94,8 @@ func (geosys *GeoscapeSystem) chooselanding() {
 func (geosys *GeoscapeSystem) tacticalscene(geotile *GeoTile) {
 	tactical := &TacticalScene{}
 	tactical.Region = geotile.Region
-	tactical.TileView = geosys.TileView
+	tactical.TileSize = geosys.TileSize
+	tactical.ScreenDims = geosys.ScreenDims
 
 	engo.SetScene(tactical, false)
 }
@@ -105,7 +109,7 @@ func (geosys *GeoscapeSystem) wipeinfo() {
 }
 
 func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
-	size := (geosys.ScreenHeight - geosys.ViewSquareSize) / 12
+	size := geosys.TextSize()
 
 	position := func(texture *common.Texture) (float32, float32) {
 		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
@@ -137,20 +141,13 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 		panic(err)
 	}
 
-	geotile.RenderComponent = common.RenderComponent{
-		Drawable: drawable,
-		Scale: engo.Point{X: 1, Y: 1},
-	}
+	geotile.RenderComponent = rndcomp(drawable)
 
 	fi, fj := float32(i), float32(j)
-	x := (fi * geosys.TileSize) + geosys.OffsetX + (fi * margin)
-	y := (fj * geosys.TileSize) + geosys.OffsetY + (fj * margin)
+	x := (fi * geosys.TileSize) + geosys.VSMinX + (fi * margin)
+	y := (fj * geosys.TileSize) + geosys.VSMinY + (fj * margin)
 
-	geotile.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: x, Y: y},
-		Width: geosys.TileSize,
-		Height: geosys.TileSize,
-	}
+	geotile.SpaceComponent = spacecompsz(x, y, geosys.TileSize, geosys.TileSize)
 
 	geosys.tiles = append(geosys.tiles, geotile)
 
