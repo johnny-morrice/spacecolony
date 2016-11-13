@@ -107,7 +107,7 @@ func hudmsg(msg string, size float32, position func(*common.Texture) (float32, f
 }
 
 func hudbg(xmin, ymin, xmax, ymax float32) *HudSection {
-	black := color.NRGBA{R:255, G: 255, B: 255, A: 255}
+	black := color.NRGBA{A: 255}
 
 	img := uniformimg(black, xmax - xmin, ymax - ymin)
 
@@ -117,7 +117,7 @@ func hudbg(xmin, ymin, xmax, ymax float32) *HudSection {
 
 	hud.BasicEntity = ecs.NewBasic()
 
-	hud.SpaceComponent = spacecomprect(xmin, xmax, ymin, ymax)
+	hud.SpaceComponent = spacecomprect(xmin, ymin, xmax, ymax)
 
 	hud.RenderComponent = rndcomp(texture)
 
