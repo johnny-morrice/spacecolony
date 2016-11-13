@@ -10,7 +10,7 @@ import (
 )
 
 type TacticalScene struct {
-	ScreenDims
+	TileView
 
 	Region *Region
 }
@@ -26,7 +26,8 @@ func (ts *TacticalScene) Setup(world *ecs.World) {
 	world.AddSystem(&common.MouseSystem{})
 
 	tacsys := &TacticalSystem{}
-	tacsys.TileView = NewTileView(ts.ScreenDims)
+	tacsys.TileView = ts.TileView
+	tacsys.Region = ts.Region
 
 	world.AddSystem(tacsys)
 }
@@ -63,7 +64,7 @@ func (tacsys *TacticalSystem) Remove(ecs.BasicEntity) {
 }
 
 func (tacsys *TacticalSystem) regen() {
-	tacsys.Region.Init(&Random{})
+	tacsys.Region.Class.GenerateTiles(&Random{})
 
 	for i := 0; i < tacsys.Region.Width; i++ {
 		for j := 0; j < tacsys.Region.Height; j++ {

@@ -59,10 +59,10 @@ func (r *Region) Init(rand *Random) {
 	default:
 		panic(fmt.Sprintf("Unknown BiomeType: %v", r.Biome.Type))
 	}
+}
 
-	// r.Tiles = make([]*Tile, r.Width * r.Height)
-
-	// r.Class.GenerateTiles(rand)
+func (r *Region) MakeTiles() {
+	r.Tiles = make([]*Tile, r.Width * r.Height)
 }
 
 type Biome struct {
@@ -93,9 +93,6 @@ const (
         BiomeDust = BiomeType(iota)
 )
 
-const DefaultRegionWidth = 1000
-const DefaultRegionHeight = 1000
-
 type Tile struct {
 	Type TileType
 
@@ -113,3 +110,7 @@ type TileClass interface {
 const (
 	TileDust = TileType(iota)
 )
+
+// TODO much larger crushes the CPU: implement sparse matrix.
+const DefaultRegionWidth = 100
+const DefaultRegionHeight = 100

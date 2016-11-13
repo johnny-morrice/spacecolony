@@ -21,19 +21,19 @@ type EngineOptions struct {
         Fullscreen bool
 }
 
-func Play(gopts GameOptions) {
-	eopts := engo.RunOptions{
+func Play(opts GameOptions) {
+	runopts := engo.RunOptions{
 		Title: "Space Colony",
-		Width:  int(gopts.Width),
-		Height: int(gopts.Height),
-                FPSLimit: int(gopts.FPS),
-                MSAA: int(gopts.Samples),
-                VSync: gopts.Vsync,
-                Fullscreen: gopts.Fullscreen,
+		Width:  int(opts.Width),
+		Height: int(opts.Height),
+                FPSLimit: int(opts.FPS),
+                MSAA: int(opts.Samples),
+                VSync: opts.Vsync,
+                Fullscreen: opts.Fullscreen,
 	}
 
 	scene := &GeoscapeScene{}
-	scene.ScreenDims = gopts.ScreenDims
+	scene.TileView = NewTileView(opts.ScreenDims)
 
-	engo.Run(eopts, scene)
+	engo.Run(runopts, scene)
 }

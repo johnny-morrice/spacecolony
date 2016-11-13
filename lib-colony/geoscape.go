@@ -10,7 +10,7 @@ import (
 )
 
 type GeoscapeScene struct {
-	ScreenDims
+	TileView
 }
 
 func (gs *GeoscapeScene) Type() string { return "geoscape" }
@@ -30,7 +30,7 @@ func (gs *GeoscapeScene) Setup(world *ecs.World) {
         world.AddSystem(&common.MouseSystem{})
 
 	geosys := &GeoscapeSystem{}
-	geosys.TileView = NewTileView(gs.ScreenDims)
+	geosys.TileView = gs.TileView
 
         world.AddSystem(geosys)
 }
@@ -54,7 +54,7 @@ func (geosys *GeoscapeSystem) New(w *ecs.World) {
 
 func (geosys *GeoscapeSystem) Update(dt float32) {
         if geosys.drawn {
-		geosys.updatehud()
+		geosys.updatescene()
 	} else {
                 geosys.regen()
 		geosys.embarktext()
@@ -63,15 +63,37 @@ func (geosys *GeoscapeSystem) Update(dt float32) {
         }
 }
 
-func (geosys *GeoscapeSystem) updatehud() {
+func (geosys *GeoscapeSystem) updatescene() {
 	geosys.wipeinfo()
 
+	geosys.hoverinfo()
+	geosys.chooselanding()
+
+}
+
+func (geosys *GeoscapeSystem) hoverinfo() {
 	for _, geotile := range geosys.tiles {
 		if geotile.Hovered {
 			geosys.displayinfo(geotile)
 			break
 		}
 	}
+}
+
+func (geosys *GeoscapeSystem) chooselanding() {
+	for _, geotile := range geosys.tiles {
+		if geotile.Clicked {
+			geosys.tacticalscene(geotile)
+		}
+	}
+}
+
+func (geosys *GeoscapeSystem) tacticalscene(geotile *GeoTile) {
+	tactical := &TacticalScene{}
+	tactical.Region = geotile.Region
+	tactical.TileView = geosys.TileView
+
+	engo.SetScene(tactical, false)
 }
 
 func (geosys *GeoscapeSystem) wipeinfo() {

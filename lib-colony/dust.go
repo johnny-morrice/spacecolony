@@ -11,6 +11,8 @@ type DustRegion struct {
 }
 
 func (dr *DustRegion) GenerateTiles(rand *Random) {
+	dr.Region.MakeTiles()
+
 	for i, _ := range dr.Region.Tiles {
 		dr.Region.Tiles[i] = dr.dustpatch()
 	}
@@ -49,5 +51,10 @@ func (dt *DustTile) ShortName() string {
 }
 
 func (dt *DustTile) Drawable(size float32) (common.Drawable, error) {
-	return nil, nil
+	const gray = 200
+	c := color.NRGBA{R: gray, G: gray, B: gray, A: 255}
+
+	img := uniformimg(c, size, size)
+
+	return imgtexture(img), nil
 }
