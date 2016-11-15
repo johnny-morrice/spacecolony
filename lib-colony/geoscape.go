@@ -65,10 +65,7 @@ func (scene *GeoscapeScene) addtile(i, j int) {
 	region := scene.planet.Tiles[strideindex(i, j, scene.planet.Width)]
 	geotile.RegionComponent = RegionComponent{X: i, Y: j, Region: region}
 
-	const margin = 2
-	regionsize := scene.TileSize - margin
-
-	drawable, err := region.Class.Drawable(regionsize)
+	drawable, err := region.Class.Drawable(scene.TileSize)
 
 	if err != nil {
 		panic(err)
@@ -77,8 +74,8 @@ func (scene *GeoscapeScene) addtile(i, j int) {
 	geotile.RenderComponent = rndcomp(drawable)
 
 	fi, fj := float32(i), float32(j)
-	x := (fi * scene.TileSize) + scene.VSMinX + (fi * margin)
-	y := (fj * scene.TileSize) + scene.VSMinY + (fj * margin)
+	x := (fi * scene.TileSize) + scene.VSMinX
+	y := (fj * scene.TileSize) + scene.VSMinY
 
 	geotile.SpaceComponent = spacecompsz(x, y, scene.TileSize, scene.TileSize)
 

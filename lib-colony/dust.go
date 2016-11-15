@@ -32,10 +32,22 @@ func (dr *DustRegion) GenerateTiles() {
 }
 
 func (dr *DustRegion) Drawable(size float32) (common.Drawable, error) {
-	const gray = 200
-	c := color.NRGBA{R: gray, G: gray, B: gray, A: 255}
+	black := color.NRGBA{A: 255}
 
-	img := uniformimg(c, size, size)
+	img := uniformimg(black, size, size)
+
+	const g = 200
+	gray := color.NRGBA{R: g, G: g, B: g, A: 255}
+
+	const margin = 2
+	isz := int(math.Floor(float64(size)))
+
+	rect := image.Rectangle{
+		Min: image.Point{X: margin, Y: margin},
+		Max: image.Point{X: isz - margin, Y: isz - margin},
+	}
+
+	draw.Draw(img, rect, image.NewUniform(gray), image.ZP, draw.Src)
 
 	return imgtexture(img), nil
 }
