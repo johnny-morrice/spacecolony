@@ -13,27 +13,84 @@ type TacticalScene struct {
 	ScreenDims
 
 	Region *Region
+	world *ecs.World
 }
 
-func (ts *TacticalScene) Type() string { return "tactical" }
+func (scene *TacticalScene) Type() string { return "tactical" }
 
-func (ts *TacticalScene) Preload() { }
+func (scene *TacticalScene) Preload() { }
 
-func (ts *TacticalScene) Setup(world *ecs.World) {
+func (scene *TacticalScene) Setup(world *ecs.World) {
 	common.SetBackground(color.Black)
 
+	scene.world = world
 	world.AddSystem(&common.RenderSystem{})
 	world.AddSystem(&common.MouseSystem{})
 
-	tacsys := &TacticalSystem{}
-	tacsys.TileSize = ts.TileSize
-	tacsys.ScreenDims = ts.ScreenDims
-	tacsys.Region = ts.Region
+	hudsys := &TacHudSystem{}
+	hudsys.TileSize = scene.TileSize
+	hudsys.ScreenDims = scene.ScreenDims
+	hudsys.Region = scene.Region
 
-	world.AddSystem(tacsys)
+	world.AddSystem(hudsys)
+
+	scene.init()
 }
 
-type TacticalSystem struct {
+func (scene *TacticalScene) addtile(i, j int) {
+	tactile := &TacTile{}
+
+	tactile.BasicEntity = ecs.NewBasic()
+
+	tile := scene.Region.Tiles[strideindex(i, j, scene.Region.Width)]
+
+	tactile.TileComponent = TileComponent{X: i, Y: j, Tile: tile}
+
+	drawable, err := tile.Class.Drawable(scene.TileSize)
+
+	if err != nil {
+		panic(err)
+	}
+
+	tactile.RenderComponent = rndcomp(drawable)
+
+	fi, fj := float32(i), float32(j)
+	x := fi * scene.TileSize
+	y := fj * scene.TileSize
+
+	tactile.SpaceComponent = spacecompsz(x, y, scene.TileSize, scene.TileSize)
+
+	mouseentity(scene.world, &tactile.BasicEntity, &tactile.MouseComponent, &tactile.RenderComponent, &tactile.SpaceComponent)
+	renderentity(scene.world, &tactile.BasicEntity, &tactile.RenderComponent, &tactile.SpaceComponent)
+
+	for _, system := range scene.world.Systems() {
+		switch sys := system.(type) {
+		case *TacHudSystem:
+			sys.Add(&tactile.BasicEntity, &tactile.MouseComponent, &tactile.TileComponent)
+		}
+	}
+}
+
+func (scene *TacticalScene) init() {
+	scene.Region.Class.GenerateTiles()
+
+	for i := 0; i < scene.Region.Width; i++ {
+		for j := 0; j < scene.Region.Height; j++ {
+			scene.addtile(i, j)
+		}
+	}
+
+	scene.hudbackground()
+}
+
+func (scene *TacticalScene) hudbackground() {
+	bg := hudbg(0, scene.ScreenHeight - 50, scene.ScreenWidth, scene.ScreenHeight)
+
+	renderentity(scene.world, &bg.BasicEntity, &bg.RenderComponent, &bg.SpaceComponent)
+}
+
+
+type TacHudSystem struct {
 	ScreenDims
 	TileSize float32
 
@@ -43,109 +100,65 @@ type TacticalSystem struct {
 
 	world *ecs.World
 
-	tiles []*TacTile
+	tiles []mousetile
 
 	tileinfo *HudSection
 }
 
-func (tacsys *TacticalSystem) New(w *ecs.World) {
-	tacsys.world = w
+type mousetile struct {
+	*common.MouseComponent
+	*TileComponent
 }
 
-func (tacsys *TacticalSystem) Update(dt float32) {
-	if tacsys.drawn {
-		tacsys.updatehud()
-	} else {
-		tacsys.regen()
-
-		tacsys.drawn = true
-	}
+func (hudsys *TacHudSystem) New(w *ecs.World) {
+	hudsys.world = w
 }
 
-func (tacsys *TacticalSystem) Remove(ecs.BasicEntity) {
-}
+func (hudsys *TacHudSystem) Update(dt float32) {
+	hudsys.wipeinfo()
 
-func (tacsys *TacticalSystem) regen() {
-	tacsys.Region.Class.GenerateTiles()
-
-	for i := 0; i < tacsys.Region.Width; i++ {
-		for j := 0; j < tacsys.Region.Height; j++ {
-			tacsys.addtile(i, j)
-		}
-	}
-
-	tacsys.hudbackground()
-}
-
-func (tacsys *TacticalSystem) hudbackground() {
-	bg := hudbg(0, tacsys.ScreenHeight - 50, tacsys.ScreenWidth, tacsys.ScreenHeight)
-
-	renderentity(tacsys.world, &bg.BasicEntity, &bg.RenderComponent, &bg.SpaceComponent)
-}
-
-func (tacsys *TacticalSystem) addtile(i, j int) {
-	tactile := &TacTile{}
-
-	tactile.BasicEntity = ecs.NewBasic()
-
-	tile := tacsys.Region.Tiles[strideindex(i, j, tacsys.Region.Width)]
-
-	tactile.TileComponent = TileComponent{X: i, Y: j, Tile: tile}
-
-	drawable, err := tile.Class.Drawable(tacsys.TileSize)
-
-	if err != nil {
-		panic(err)
-	}
-
-	tactile.RenderComponent = rndcomp(drawable)
-
-	fi, fj := float32(i), float32(j)
-	x := fi * tacsys.TileSize
-	y := fj * tacsys.TileSize
-
-	tactile.SpaceComponent = spacecompsz(x, y, tacsys.TileSize, tacsys.TileSize)
-
-	tacsys.tiles = append(tacsys.tiles, tactile)
-
-	mouseentity(tacsys.world, &tactile.BasicEntity, &tactile.MouseComponent, &tactile.RenderComponent, &tactile.SpaceComponent)
-	renderentity(tacsys.world, &tactile.BasicEntity, &tactile.RenderComponent, &tactile.SpaceComponent)
-}
-
-func (tacsys *TacticalSystem) updatehud() {
-	tacsys.wipeinfo()
-
-	for _, tactile := range tacsys.tiles {
-		if tactile.Hovered {
-			tacsys.displayinfo(tactile)
+	for _, t := range hudsys.tiles {
+		if t.Hovered {
+			hudsys.displayinfo(t)
 
 			break
 		}
 	}
 }
 
-func (tacsys *TacticalSystem) wipeinfo() {
-	if tacsys.tileinfo != nil {
-		derenderentity(tacsys.world, &tacsys.tileinfo.BasicEntity)
-	}
+func (hudsys *TacHudSystem) Add(b *ecs.BasicEntity, m *common.MouseComponent, t *TileComponent) {
+	mt := mousetile{}
+	mt.MouseComponent = m
+	mt.TileComponent = t
 
-	tacsys.tileinfo = nil
+	hudsys.tiles = append(hudsys.tiles, mt)
 }
 
-func (tacsys *TacticalSystem) displayinfo(tactile *TacTile) {
-	size := tacsys.TextSize()
+func (hudsys *TacHudSystem) Remove(ecs.BasicEntity) {
+}
 
-	position := func(texture *common.Texture) (float32, float32) {
-		return (tacsys.ScreenWidth - texture.Width()) / 2, tacsys.ScreenWidth - 10 - size
+func (hudsys *TacHudSystem) wipeinfo() {
+	if hudsys.tileinfo != nil {
+		derenderentity(hudsys.world, &hudsys.tileinfo.BasicEntity)
 	}
 
-	msg := fmt.Sprintf("%v (%v,%v)", tactile.Tile.Class.ShortName(), tactile.X, tactile.Y)
+	hudsys.tileinfo = nil
+}
+
+func (hudsys *TacHudSystem) displayinfo(tile mousetile) {
+	size := hudsys.TextSize()
+
+	position := func(texture *common.Texture) (float32, float32) {
+		return (hudsys.ScreenWidth - texture.Width()) / 2, hudsys.ScreenWidth - 10 - size
+	}
+
+	msg := fmt.Sprintf("%v (%v,%v)", tile.Tile.Class.ShortName(), tile.X, tile.Y)
 
 	hud := hudmsg(msg, size, position)
 
-	tacsys.tileinfo = hud
+	hudsys.tileinfo = hud
 
-	renderentity(tacsys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
+	renderentity(hudsys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
 }
 
 type TacTile struct {

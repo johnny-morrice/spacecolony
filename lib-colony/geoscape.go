@@ -123,7 +123,7 @@ type GeoscapeLander struct {
 	TileSize float32
 	world *ecs.World
 
-	mrs []*mouseregion
+	regions []mouseregion
 	regioninfo *HudSection
 }
 
@@ -138,28 +138,28 @@ func (lander *GeoscapeLander) Update(df float32) {
 }
 
 func (lander *GeoscapeLander) Add(basic *ecs.BasicEntity, m *common.MouseComponent, r *RegionComponent) {
-	mr := &mouseregion{
+	reg := mouseregion{
 		MouseComponent: m,
 		RegionComponent: r,
 	}
 
-	lander.mrs = append(lander.mrs, mr)
+	lander.regions = append(lander.regions, reg)
 }
 
 func (lander *GeoscapeLander) hoverinfo() {
-	for _, mr := range lander.mrs {
-		if mr.Hovered {
-			lander.displayinfo(mr)
+	for _, reg := range lander.regions {
+		if reg.Hovered {
+			lander.displayinfo(reg)
 			break
 		}
 	}
 }
 
 func (lander *GeoscapeLander) chooselanding() {
-	for _, mr := range lander.mrs {
-		if mr.Clicked {
+	for _, reg := range lander.regions {
+		if reg.Clicked {
 			tactical := &TacticalScene{}
-			tactical.Region = mr.Region
+			tactical.Region = reg.Region
 			tactical.TileSize = lander.TileSize
 			tactical.ScreenDims = lander.ScreenDims
 
@@ -177,14 +177,14 @@ func (lander *GeoscapeLander) wipeinfo() {
 	lander.regioninfo = nil
 }
 
-func (lander *GeoscapeLander) displayinfo(mr *mouseregion) {
+func (lander *GeoscapeLander) displayinfo(reg mouseregion) {
 	size := lander.TextSize()
 
 	position := func(texture *common.Texture) (float32, float32) {
 		return (lander.ScreenWidth - texture.Width()) / 2, lander.ScreenWidth - 10 - size
 	}
 
-	msg := fmt.Sprintf("%v (%v,%v)", mr.Region.Class.ShortName(), mr.X, mr.Y)
+	msg := fmt.Sprintf("%v (%v,%v)", reg.Region.Class.ShortName(), reg.X, reg.Y)
 
 	hud := hudmsg(msg, size, position)
 
