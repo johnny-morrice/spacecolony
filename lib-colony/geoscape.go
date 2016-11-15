@@ -11,11 +11,16 @@ import (
 
 type GeoscapeScene struct {
 	ScreenDims
+	CenterTiles
+	TileSize float32
+
+	planet *Planet
+	world *ecs.World
 }
 
-func (gs *GeoscapeScene) Type() string { return "geoscape" }
+func (scene *GeoscapeScene) Type() string { return "geoscape" }
 
-func (gs *GeoscapeScene) Preload() {
+func (scene *GeoscapeScene) Preload() {
 	err := loadAllAssets()
 
 	if err != nil {
@@ -23,117 +28,45 @@ func (gs *GeoscapeScene) Preload() {
 	}
 }
 
-func (gs *GeoscapeScene) Setup(world *ecs.World) {
-        common.SetBackground(color.Black)
+func (scene *GeoscapeScene) Setup(world *ecs.World) {
+	common.SetBackground(color.Black)
+
+	scene.CenterTiles = NewCenterTiles(scene.ScreenDims)
+	scene.ScreenDims = scene.ScreenDims
+	scene.world = world
+
+	const planetsize = 40
+	scene.planet = &Planet{}
+	scene.planet.Width = planetsize
+	scene.planet.Height = planetsize
+	scene.TileSize = evenfloor(scene.ViewSquareSize / planetsize)
+
+	lander := &GeoscapeLander{}
+	lander.ScreenDims = scene.ScreenDims
+	lander.TileSize = scene.TileSize
+
+
+	scene.planet.Init()
 
         world.AddSystem(&common.RenderSystem{})
         world.AddSystem(&common.MouseSystem{})
+	world.AddSystem(lander)
 
-	geosys := &GeoscapeSystem{}
-	geosys.CenterTiles = NewCenterTiles(gs.ScreenDims)
-	geosys.ScreenDims = gs.ScreenDims
-
-        world.AddSystem(geosys)
-}
-
-type GeoscapeSystem struct {
-	ScreenDims
-	CenterTiles
-	TileSize float32
-
-        drawn bool
-
-        world *ecs.World
-
-	planet *Planet
-
-	tiles []*GeoTile
-	regioninfo *HudSection
-}
-
-func (geosys *GeoscapeSystem) New(w *ecs.World) {
-	geosys.world = w
-}
-
-func (geosys *GeoscapeSystem) Update(dt float32) {
-        if geosys.drawn {
-		geosys.updatescene()
-	} else {
-                geosys.regen()
-		geosys.embarktext()
-
-		geosys.drawn = true
-        }
-}
-
-func (geosys *GeoscapeSystem) updatescene() {
-	geosys.wipeinfo()
-
-	geosys.hoverinfo()
-	geosys.chooselanding()
+	scene.gentiles()
+	scene.embarktext()
 
 }
 
-func (geosys *GeoscapeSystem) hoverinfo() {
-	for _, geotile := range geosys.tiles {
-		if geotile.Hovered {
-			geosys.displayinfo(geotile)
-			break
-		}
-	}
-}
-
-func (geosys *GeoscapeSystem) chooselanding() {
-	for _, geotile := range geosys.tiles {
-		if geotile.Clicked {
-			geosys.tacticalscene(geotile)
-		}
-	}
-}
-
-func (geosys *GeoscapeSystem) tacticalscene(geotile *GeoTile) {
-	tactical := &TacticalScene{}
-	tactical.Region = geotile.Region
-	tactical.TileSize = geosys.TileSize
-	tactical.ScreenDims = geosys.ScreenDims
-
-	engo.SetScene(tactical, false)
-}
-
-func (geosys *GeoscapeSystem) wipeinfo() {
-	if geosys.regioninfo != nil {
-		derenderentity(geosys.world, &geosys.regioninfo.BasicEntity)
-	}
-
-	geosys.regioninfo = nil
-}
-
-func (geosys *GeoscapeSystem) displayinfo(geotile *GeoTile) {
-	size := geosys.TextSize()
-
-	position := func(texture *common.Texture) (float32, float32) {
-		return (geosys.ScreenWidth - texture.Width()) / 2, geosys.ScreenWidth - 10 - size
-	}
-
-	msg := fmt.Sprintf("%v (%v,%v)", geotile.Region.Class.ShortName(), geotile.X, geotile.Y)
-
-	hud := hudmsg(msg, size, position)
-
-	geosys.regioninfo = hud
-
-	renderentity(geosys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
-}
-
-func (geosys *GeoscapeSystem) addtile(i, j int) {
-	geotile := &GeoTile{}
+func (scene *GeoscapeScene) addtile(i, j int) {
+	geotile := &geotile{}
 
 	geotile.BasicEntity = ecs.NewBasic()
 
-	region := geosys.planet.Tiles[strideindex(i, j, geosys.planet.Width)]
+	region := scene.planet.Tiles[strideindex(i, j, scene.planet.Width)]
 	geotile.RegionComponent = RegionComponent{X: i, Y: j, Region: region}
 
 	const margin = 2
-	regionsize := geosys.TileSize - margin
+	regionsize := scene.TileSize - margin
 
 	drawable, err := region.Class.Drawable(regionsize)
 
@@ -144,49 +77,125 @@ func (geosys *GeoscapeSystem) addtile(i, j int) {
 	geotile.RenderComponent = rndcomp(drawable)
 
 	fi, fj := float32(i), float32(j)
-	x := (fi * geosys.TileSize) + geosys.VSMinX + (fi * margin)
-	y := (fj * geosys.TileSize) + geosys.VSMinY + (fj * margin)
+	x := (fi * scene.TileSize) + scene.VSMinX + (fi * margin)
+	y := (fj * scene.TileSize) + scene.VSMinY + (fj * margin)
 
-	geotile.SpaceComponent = spacecompsz(x, y, geosys.TileSize, geosys.TileSize)
+	geotile.SpaceComponent = spacecompsz(x, y, scene.TileSize, scene.TileSize)
 
-	geosys.tiles = append(geosys.tiles, geotile)
+	mouseentity(scene.world, &geotile.BasicEntity, &geotile.MouseComponent, &geotile.RenderComponent, &geotile.SpaceComponent)
+	renderentity(scene.world, &geotile.BasicEntity, &geotile.RenderComponent, &geotile.SpaceComponent)
 
-	mouseentity(geosys.world, &geotile.BasicEntity, &geotile.MouseComponent, &geotile.RenderComponent, &geotile.SpaceComponent)
-	renderentity(geosys.world, &geotile.BasicEntity, &geotile.RenderComponent, &geotile.SpaceComponent)
-}
-
-func (geosys *GeoscapeSystem) embarktext() {
-	titleSize := (geosys.ScreenHeight - geosys.ViewSquareSize) / 6
-
-	position := func(texture *common.Texture) (float32, float32) {
-		return (geosys.ScreenWidth - texture.Width()) / 2, 10
-	}
-
-	hud := hudmsg("Select Landing Zone", titleSize, position)
-
-	renderentity(geosys.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
-}
-
-func (geosys *GeoscapeSystem) Remove(ecs.BasicEntity) {
-}
-
-func (geosys *GeoscapeSystem) regen() {
-	const planetsize = 40
-	geosys.planet = &Planet{}
-	geosys.planet.Width = planetsize
-	geosys.planet.Height = planetsize
-	geosys.TileSize = evenfloor(geosys.ViewSquareSize / planetsize)
-
-	geosys.planet.Init()
-
-	for i := 0; i < geosys.planet.Width; i++ {
-		for j := 0; j < geosys.planet.Height; j++ {
-			geosys.addtile(i, j)
+	for _, system := range scene.world.Systems() {
+		switch sys := system.(type) {
+		case *GeoscapeLander:
+			sys.Add(&geotile.BasicEntity, &geotile.MouseComponent, &geotile.RegionComponent)
 		}
 	}
 }
 
-type GeoTile struct {
+func (scene *GeoscapeScene) embarktext() {
+	titleSize := (scene.ScreenHeight - scene.ViewSquareSize) / 6
+
+	position := func(texture *common.Texture) (float32, float32) {
+		return (scene.ScreenWidth - texture.Width()) / 2, 10
+	}
+
+	hud := hudmsg("Select Landing Zone", titleSize, position)
+
+	renderentity(scene.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
+}
+
+func (scene *GeoscapeScene) gentiles() {
+	for i := 0; i < scene.planet.Width; i++ {
+		for j := 0; j < scene.planet.Height; j++ {
+			scene.addtile(i, j)
+		}
+	}
+}
+
+type mouseregion struct {
+	*common.MouseComponent
+	*RegionComponent
+}
+
+type GeoscapeLander struct {
+	ScreenDims
+	TileSize float32
+	world *ecs.World
+
+	mrs []*mouseregion
+	regioninfo *HudSection
+}
+
+func (lander *GeoscapeLander) New(w *ecs.World) {
+	lander.world = w
+}
+
+func (lander *GeoscapeLander) Update(df float32) {
+	lander.wipeinfo()
+	lander.hoverinfo()
+	lander.chooselanding()
+}
+
+func (lander *GeoscapeLander) Add(basic *ecs.BasicEntity, m *common.MouseComponent, r *RegionComponent) {
+	mr := &mouseregion{
+		MouseComponent: m,
+		RegionComponent: r,
+	}
+
+	lander.mrs = append(lander.mrs, mr)
+}
+
+func (lander *GeoscapeLander) hoverinfo() {
+	for _, mr := range lander.mrs {
+		if mr.Hovered {
+			lander.displayinfo(mr)
+			break
+		}
+	}
+}
+
+func (lander *GeoscapeLander) chooselanding() {
+	for _, mr := range lander.mrs {
+		if mr.Clicked {
+			tactical := &TacticalScene{}
+			tactical.Region = mr.Region
+			tactical.TileSize = lander.TileSize
+			tactical.ScreenDims = lander.ScreenDims
+
+			engo.SetScene(tactical, false)
+			break
+		}
+	}
+}
+
+func (lander *GeoscapeLander) wipeinfo() {
+	if lander.regioninfo != nil {
+		derenderentity(lander.world, &lander.regioninfo.BasicEntity)
+	}
+
+	lander.regioninfo = nil
+}
+
+func (lander *GeoscapeLander) displayinfo(mr *mouseregion) {
+	size := lander.TextSize()
+
+	position := func(texture *common.Texture) (float32, float32) {
+		return (lander.ScreenWidth - texture.Width()) / 2, lander.ScreenWidth - 10 - size
+	}
+
+	msg := fmt.Sprintf("%v (%v,%v)", mr.Region.Class.ShortName(), mr.X, mr.Y)
+
+	hud := hudmsg(msg, size, position)
+
+	lander.regioninfo = hud
+
+	renderentity(lander.world, &hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
+}
+
+func (lander *GeoscapeLander) Remove(e ecs.BasicEntity) {}
+
+type geotile struct {
         ecs.BasicEntity
         common.RenderComponent
         common.SpaceComponent
