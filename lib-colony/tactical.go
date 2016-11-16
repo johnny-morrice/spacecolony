@@ -34,6 +34,11 @@ func (scene *TacticalScene) Setup(world *ecs.World) {
 
 	world.AddSystem(hudsys)
 
+	world.AddSystem(&common.EdgeScroller{
+		ScrollSpeed: 400,
+		EdgeMargin: 100,
+	})
+
 	scene.init()
 }
 
